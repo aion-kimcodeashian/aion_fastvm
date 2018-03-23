@@ -28,17 +28,17 @@
 		<link>
 			<name>include</name>
 			<type>2</type>
-			<location>/home/yulong/aion_fastvm/include</location>
+			<location>/home/yulong/workspace-cpp/aion_fastvm/include</location>
 		</link>
 		<link>
 			<name>libevmjit</name>
 			<type>2</type>
-			<location>/home/yulong/aion_fastvm/libevmjit</location>
+			<location>/home/yulong/workspace-cpp/aion_fastvm/libevmjit</location>
 		</link>
 		<link>
 			<name>tests</name>
 			<type>2</type>
-			<location>/home/yulong/aion_fastvm/tests</location>
+			<location>/home/yulong/workspace-cpp/aion_fastvm/tests</location>
 		</link>
 	</linkedResources>
 </projectDescription>

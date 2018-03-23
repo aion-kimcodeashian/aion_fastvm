@@ -28,32 +28,27 @@
 		<link>
 			<name>libdevcore</name>
 			<type>2</type>
-			<location>/home/yulong/aion_fastvm/solidity/libdevcore</location>
+			<location>/home/yulong/workspace-cpp/aion_fastvm/solidity/libdevcore</location>
 		</link>
 		<link>
 			<name>libevmasm</name>
 			<type>2</type>
-			<location>/home/yulong/aion_fastvm/solidity/libevmasm</location>
+			<location>/home/yulong/workspace-cpp/aion_fastvm/solidity/libevmasm</location>
 		</link>
 		<link>
 			<name>libjulia</name>
 			<type>2</type>
-			<location>/home/yulong/aion_fastvm/solidity/libjulia</location>
+			<location>/home/yulong/workspace-cpp/aion_fastvm/solidity/libjulia</location>
 		</link>
 		<link>
 			<name>libsolidity</name>
 			<type>2</type>
-			<location>/home/yulong/aion_fastvm/solidity/libsolidity</location>
-		</link>
-		<link>
-			<name>solidity</name>
-			<type>2</type>
-			<location>/home/yulong/aion_fastvm/solidity</location>
+			<location>/home/yulong/workspace-cpp/aion_fastvm/solidity/libsolidity</location>
 		</link>
 		<link>
 			<name>tests</name>
 			<type>2</type>
-			<location>/home/yulong/aion_fastvm/solidity/tests</location>
+			<location>/home/yulong/workspace-cpp/aion_fastvm/solidity/tests</location>
 		</link>
 	</linkedResources>
 </projectDescription>

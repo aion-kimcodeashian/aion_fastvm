@@ -55,9 +55,9 @@
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/libevmjit}&quot;"/>
                                     									
-                                    <listOptionValue builtIn="false" value="/usr/include/llvm-5.0"/>
+                                    <listOptionValue builtIn="false" value="/usr/include/llvm-4.0"/>
                                     									
-                                    <listOptionValue builtIn="false" value="/usr/include/llvm-c-5.0"/>
+                                    <listOptionValue builtIn="false" value="/usr/include/llvm-c-4.0"/>
                                     								
                                 </option>
                                 								
@@ -81,7 +81,7 @@
                                 								
                                 <option id="gnu.cpp.link.option.libs.1580107364" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" useByScannerDiscovery="false" valueType="libs">
                                     									
-                                    <listOptionValue builtIn="false" value="LLVM-5.0"/>
+                                    <listOptionValue builtIn="false" value="LLVM-4.0"/>
                                     									
                                     <listOptionValue builtIn="false" value="gtest"/>
                                     									
