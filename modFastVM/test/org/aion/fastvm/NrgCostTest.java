@@ -20,13 +20,18 @@
  ******************************************************************************/
 package org.aion.fastvm;
 
+import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
 import org.aion.base.util.Hex;
 import org.aion.fastvm.Instruction.*;
 import org.aion.vm.ExecutionContext;
 import org.aion.vm.ExecutionResult;
 import org.aion.vm.ExecutionResult.Code;
+import org.aion.zero.db.AionRepositoryCache;
+import org.aion.zero.impl.db.AionRepositoryImpl;
 import org.aion.vm.TransactionResult;
+import org.aion.mcf.core.AccountState;
+import org.aion.mcf.db.IBlockStoreBase;
 import org.aion.mcf.vm.types.DataWord;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
@@ -64,7 +69,12 @@ public class NrgCostTest {
 
     private TransactionResult txResult;
 
-    public NrgCostTest() throws CloneNotSupportedException {
+    private final DummyRepository2 repo;
+    
+
+    public NrgCostTest() {
+        AionRepositoryImpl db = AionRepositoryImpl.inst();
+        repo = new DummyRepository2(db);
     }
 
     @BeforeClass
@@ -86,7 +96,7 @@ public class NrgCostTest {
         ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
                 callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
                 blockDifficulty, txResult);
-        DummyRepository repo = new DummyRepository();
+        DummyRepository2 repo = new DummyRepository2(AionRepositoryImpl.inst());
         repo.addContract(address, code);
         for (int i = 0; i < 10000; i++) {
             new FastVM().run(code, ctx, repo);
@@ -143,7 +153,7 @@ public class NrgCostTest {
             // compile
             ExecutionResult result = new FastVM().run(code, ctx, repo);
             assertEquals(Code.SUCCESS, result.getCode());
-
+            
             long t1 = System.nanoTime();
             for (int i = 0; i < y; i++) {
                 new FastVM().run(code, ctx, repo);
@@ -358,7 +368,7 @@ public class NrgCostTest {
         int z = 10;
 
         System.out.println("\n========================================================================");
-        System.out.println("Cost for instructions of the VeryLow tier");
+        System.out.println("Cost for instructions of EXP");
         System.out.println("========================================================================");
 
         Instruction[] instructions = {EXP};
@@ -389,14 +399,81 @@ public class NrgCostTest {
         }
     }
 
+    @Test
+    public void testSStore() {
+        int x = 64;
+        int y = 1000;
+        int z = 10;
 
+        System.out.println("\n========================================================================");
+        System.out.println("Cost for instructions of SSTORE, SLOAD");
+        System.out.println("========================================================================");
+
+        Instruction[] instructions = {SSTORE, SLOAD};
+
+        for (Instruction inst : instructions) {
+            callData = Hex.decode("0000000000000000000000000000000100000000000000000000000000000002");
+            byte[] code = repeat(x, PUSH1, 32, CALLDATALOAD, PUSH1, 16, CALLDATALOAD, PUSH1, 0, CALLDATALOAD, inst);
+
+            ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
+                    callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
+                    blockDifficulty, txResult);
+            repo.addContract(address, code);
+
+            // compile
+            ExecutionResult result = new FastVM().run(code, ctx, repo);
+            assertEquals(Code.SUCCESS, result.getCode());
+
+            long t1 = System.nanoTime();
+            for (int i = 0; i < y; i++) {
+                new FastVM().run(code, ctx, repo);
+            }
+            long t2 = System.nanoTime();
+
+            long c = (t2 - t1) / y / x;
+            System.out.printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
+                    (nrgLimit / z) * c / 1_000_000, nrgLimit);
+        }
+    }
+    
     @Test
     public void test8Remaining() {
+        int x = 64;
+        int y = 1000;
+        int z = 10;
+        System.out.println("\n========================================================================");
+        System.out.println("Cost for instructions of OTHER");
+        System.out.println("========================================================================");
 
         for (Instruction inst : Instruction.values()) {
             if (inst.tier() != Tier.BASE && inst.tier() != Tier.LOW && inst.tier() != Tier.VERY_LOW
                     && inst.tier() != Tier.MID && inst.tier() != Tier.HIGH) {
-                System.out.println(inst.name() + "\t" + inst.tier());
+                callData = Hex.decode("0000000000000000000000000000000100000000000000000000000000000002");
+                byte[] code = repeat(x, PUSH1, 32, CALLDATALOAD, PUSH1, 16, CALLDATALOAD, PUSH1, 0, CALLDATALOAD, inst);
+
+                ExecutionContext ctx = new ExecutionContext(txHash, address, origin, caller, nrgPrice, nrgLimit, callValue,
+                        callData, depth, kind, flags, blockCoinbase, blockNumber, blockTimestamp, blockNrgLimit,
+                        blockDifficulty, txResult);
+                //DummyRepository2 drepo = new DummyRepository2();
+                repo.addContract(address, code);
+
+                // compile
+                ExecutionResult result = new FastVM().run(code, ctx, repo);
+                if (Code.SUCCESS != result.getCode()) {
+                    System.out.printf("%12s: %s\n", inst.name(), result.getCode());
+                    continue;
+                }
+                //assertEquals(Code.SUCCESS, result.getCode());
+
+                long t1 = System.nanoTime();
+                for (int i = 0; i < y; i++) {
+                    new FastVM().run(code, ctx, repo);
+                }
+                long t2 = System.nanoTime();
+
+                long c = (t2 - t1) / y / x;
+                System.out.printf("%12s: %3d ns per instruction, %3d ms for nrgLimit = %d\n", inst.name(), c,
+                        (nrgLimit / z) * c / 1_000_000, nrgLimit);
             }
         }
     }

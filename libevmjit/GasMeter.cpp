@@ -101,7 +101,7 @@ void GasMeter::countSStore(Ext& _ext, llvm::Value* _index, llvm::Value* _newValu
 	auto newValueIsntZero = m_builder.CreateICmpNE(_newValue, Constant::get(0), "newValueIsntZero");
 	auto isInsert = m_builder.CreateAnd(oldValueIsZero, newValueIsntZero, "isInsert");
 	assert(JITSchedule::sstoreResetGas::value == JITSchedule::sstoreClearGas::value && "Update SSTORE gas cost");
-	auto cost = m_builder.CreateSelect(isInsert, m_builder.getInt64(JITSchedule::sstoreSetGas::value), m_builder.getInt64(m_rev >= EVM_AION ? 8000 : JITSchedule::sstoreResetGas::value), "cost");
+	auto cost = m_builder.CreateSelect(isInsert, m_builder.getInt64(JITSchedule::sstoreSetGas::value), m_builder.getInt64(m_rev >= EVM_AION ? 16 : JITSchedule::sstoreResetGas::value), "cost");
 	count(cost);
 }
 
@@ -110,6 +110,7 @@ void GasMeter::countLogData(llvm::Value* _dataLength)
 	assert(m_checkCall);
 	assert(m_blockCost > 0); // LOGn instruction is already counted
 	assert(JITSchedule::logDataGas::value != 1 && "Log data gas cost has changed. Update GasMeter.");
+	// Estimate: LOG0 = 6 gas, LOG1..4 cost is bigger
 	count(m_builder.CreateNUWMul(_dataLength, Constant::get(m_rev >= EVM_AION ? 20 : JITSchedule::logDataGas::value))); // TODO: Use i64
 }
 
@@ -242,20 +243,20 @@ int64_t GasMeter::getStepCost(Instruction inst) const
 
 	// Tier 6
 	case Instruction::BALANCE:
-		return m_rev >= EVM_AION ? 1000 : (m_rev >= EVM_TANGERINE_WHISTLE ? 400 : JITSchedule::stepGas6::value);
+		return m_rev >= EVM_AION ? 150 : (m_rev >= EVM_TANGERINE_WHISTLE ? 400 : JITSchedule::stepGas6::value);
 
 	case Instruction::EXTCODESIZE:
 	case Instruction::EXTCODECOPY:
-		return m_rev >= EVM_AION ? 1000 : (m_rev >= EVM_TANGERINE_WHISTLE ? 700 : JITSchedule::stepGas6::value);
+		return m_rev >= EVM_AION ? 5 : (m_rev >= EVM_TANGERINE_WHISTLE ? 700 : JITSchedule::stepGas6::value);
 
 	case Instruction::BLOCKHASH:
-		return JITSchedule::stepGas6::value;
+		return m_rev >= EVM_AION ? 40 : JITSchedule::stepGas6::value;
 
 	case Instruction::SHA3:
-		return JITSchedule::sha3Gas::value;
+		return m_rev >= EVM_AION ? 7 : JITSchedule::sha3Gas::value;
 
 	case Instruction::SLOAD:
-		return m_rev >= EVM_AION ? 1000 : (m_rev >= EVM_TANGERINE_WHISTLE ? 200 : JITSchedule::sloadGas::value);
+		return m_rev >= EVM_AION ? 200 : (m_rev >= EVM_TANGERINE_WHISTLE ? 200 : JITSchedule::sloadGas::value);
 
 	case Instruction::JUMPDEST:
 		return JITSchedule::jumpdestGas::value;
@@ -267,7 +268,7 @@ int64_t GasMeter::getStepCost(Instruction inst) const
 	case Instruction::LOG4:
 	{
 		auto numTopics = static_cast<int64_t>(inst) - static_cast<int64_t>(Instruction::LOG0);
-		return (m_rev >= EVM_AION ? 500 : JITSchedule::logGas::value) + numTopics * (m_rev >= EVM_AION ? 500 : JITSchedule::logTopicGas::value);
+		return (m_rev >= EVM_AION ? 7 : JITSchedule::logGas::value) + numTopics * (m_rev >= EVM_AION ? 500 : JITSchedule::logTopicGas::value);
 	}
 
 	case Instruction::CALL:
